@@ -1,0 +1,82 @@
+
+const facilities = {
+  Clubhouse: {
+    slots: {
+      '10:00-16:00': 100,
+      '16:00-22:00': 500
+    },
+    bookings: {}
+  },
+  TennisCourt: {
+    slots: {
+      '00:00-24:00': 50
+    },
+    bookings: {}
+  }
+};
+
+function bookFacility(facility, date, startTime, endTime) {
+  if (!facilities.hasOwnProperty(facility)) {
+    return 'Facility does not exist.';
+  }
+
+  const slots = facilities[facility].slots;
+  const bookingAmount = calculateBookingAmount(slots, startTime, endTime);
+  if (bookingAmount === 0) {
+    return 'Booking Failed, invalid time slot.';
+  }
+
+  const bookings = facilities[facility].bookings;
+  if (isAlreadyBooked(bookings, date, startTime, endTime)) {
+    return 'Booking Failed, already booked.';
+  }
+
+  const bookingDetails = {
+    date,
+    startTime,
+    endTime,
+    amount: bookingAmount
+  };
+  bookings[date] = bookingDetails;
+
+  return `Booked, Rs. ${bookingAmount}`;
+}
+
+function calculateBookingAmount(slots, startTime, endTime) {
+  let bookingAmount = 0;
+  for (const slot in slots) {
+    const [slotStartTime, slotEndTime] = slot.split('-');
+    if ( compareTime(startTime, slotStartTime) >= 0 && compareTime(endTime, slotEndTime) <= 0) {
+        const timeDuration = parseInt(endTime) - parseInt(startTime)
+        bookingAmount += timeDuration * slots[slot];
+    }
+  }
+  return bookingAmount;
+}
+
+function compareTime(time1, time2) {
+  const [hours1, minutes1] = time1.split(':');
+  const [hours2, minutes2] = time2.split(':');
+  if (hours1 === hours2) {
+    return minutes1.localeCompare(minutes2);
+  }
+  return hours1.localeCompare(hours2);
+}
+
+function isAlreadyBooked(bookings, date, startTime, endTime) {
+  if (bookings.hasOwnProperty(date)) {
+    const { startTime: bookedStartTime, endTime: bookedEndTime } = bookings[date];
+    if (
+      compareTime(startTime, bookedStartTime) >= 0 &&
+      compareTime(endTime, bookedEndTime) <= 0
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+console.log(bookFacility('Clubhouse', '26-10-2020', '16:00', '22:00')); 
+console.log(bookFacility('TennisCourt', '26-10-2020', '16:00', '20:00')); 
+console.log(bookFacility('Clubhouse', '26-10-2020', '16:00', '22:00')); 
+console.log(bookFacility('TennisCourt', '26-10-2020', '17:00', '21:00')); 
